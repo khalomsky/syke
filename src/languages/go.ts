@@ -4,6 +4,8 @@ import { LanguagePlugin, discoverAllFiles } from "./plugin";
 
 const IMPORT_LINE_RE = /^\s*"([^"]+)"/;
 
+const goModuleCache = new Map<string, string>();
+
 export const goPlugin: LanguagePlugin = {
   id: "go",
   name: "Go",
@@ -32,21 +34,26 @@ export const goPlugin: LanguagePlugin = {
     return discoverAllFiles(dir, [".go"]).filter(f => !f.endsWith("_test.go"));
   },
 
-  parseImports(filePath: string, projectRoot: string, _sourceDir: string): string[] {
-    let content: string;
-    try {
-      content = fs.readFileSync(filePath, "utf-8");
-    } catch {
-      return [];
+  parseImports(filePath: string, projectRoot: string, _sourceDir: string, content?: string): string[] {
+    if (!content) {
+      try {
+        content = fs.readFileSync(filePath, "utf-8");
+      } catch {
+        return [];
+      }
     }
 
-    // Get module prefix from go.mod
-    let modulePrefix = "";
-    try {
-      const goMod = fs.readFileSync(path.join(projectRoot, "go.mod"), "utf-8");
-      const match = goMod.match(/^module\s+(\S+)/m);
-      if (match) modulePrefix = match[1];
-    } catch {}
+    // Get module prefix from go.mod (cached per projectRoot)
+    let modulePrefix = goModuleCache.get(projectRoot);
+    if (modulePrefix === undefined) {
+      modulePrefix = "";
+      try {
+        const goMod = fs.readFileSync(path.join(projectRoot, "go.mod"), "utf-8");
+        const match = goMod.match(/^module\s+(\S+)/m);
+        if (match) modulePrefix = match[1];
+      } catch {}
+      goModuleCache.set(projectRoot, modulePrefix);
+    }
 
     const imports: string[] = [];
 

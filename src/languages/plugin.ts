@@ -13,7 +13,7 @@ export interface LanguagePlugin {
   getSourceDirs(root: string): string[];
   getPackageName(root: string): string;
   discoverFiles(dir: string): string[];
-  parseImports(filePath: string, projectRoot: string, sourceDir: string): string[];
+  parseImports(filePath: string, projectRoot: string, sourceDir: string, content?: string): string[];
   classifyLayer?(relPath: string): string | null;
 }
 
@@ -38,10 +38,19 @@ export function getPluginForFile(filePath: string): LanguagePlugin | undefined {
   return plugins.find(p => p.extensions.includes(ext));
 }
 
-// ── Auto-detect ──
+// ── Auto-detect (cached) ──
+
+let detectCache: { root: string; result: LanguagePlugin[] } | null = null;
 
 export function detectLanguages(root: string): LanguagePlugin[] {
-  return plugins.filter(p => p.detectProject(root));
+  if (detectCache && detectCache.root === root) return detectCache.result;
+  const result = plugins.filter(p => p.detectProject(root));
+  detectCache = { root, result };
+  return result;
+}
+
+export function clearDetectCache(): void {
+  detectCache = null;
 }
 
 export function detectProjectRoot(startDir?: string): string {
@@ -138,6 +147,28 @@ export function hasManifestFile(root: string, manifests: string[]): boolean {
 }
 
 /**
+ * Quick check: does a directory (recursively) contain any file with matching extensions?
+ * Short-circuits on the first match — much faster than collecting all files.
+ */
+function hasAnySourceFile(dir: string, extensions: string[], skipSet: Set<string>): boolean {
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isFile() && extensions.some(ext => entry.name.endsWith(ext))) {
+        return true;
+      }
+    }
+    // Check subdirectories only if no file found at this level
+    for (const entry of entries) {
+      if (entry.isDirectory() && !skipSet.has(entry.name) && !entry.name.startsWith(".")) {
+        if (hasAnySourceFile(path.join(dir, entry.name), extensions, skipSet)) return true;
+      }
+    }
+  } catch {}
+  return false;
+}
+
+/**
  * Find first-level subdirectories (and optionally root) that contain files with given extensions.
  * Skips hidden dirs and common non-source dirs (.venv, node_modules, etc.).
  */
@@ -152,13 +183,13 @@ export function findSourceDirsWithFiles(root: string, extensions: string[]): str
       dirs.push(root);
     }
 
-    // Check first-level subdirectories
+    // Check first-level subdirectories (quick existence check, not full walk)
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       if (SKIP_DIRS.has(entry.name) || entry.name.startsWith(".")) continue;
 
       const subdir = path.join(root, entry.name);
-      if (discoverAllFiles(subdir, extensions).length > 0) {
+      if (hasAnySourceFile(subdir, extensions, SKIP_DIRS)) {
         dirs.push(subdir);
       }
     }

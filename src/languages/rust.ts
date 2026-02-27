@@ -34,12 +34,13 @@ export const rustPlugin: LanguagePlugin = {
     return discoverAllFiles(dir, [".rs"]);
   },
 
-  parseImports(filePath: string, _projectRoot: string, sourceDir: string): string[] {
-    let content: string;
-    try {
-      content = fs.readFileSync(filePath, "utf-8");
-    } catch {
-      return [];
+  parseImports(filePath: string, _projectRoot: string, sourceDir: string, content?: string): string[] {
+    if (!content) {
+      try {
+        content = fs.readFileSync(filePath, "utf-8");
+      } catch {
+        return [];
+      }
     }
 
     const imports: string[] = [];

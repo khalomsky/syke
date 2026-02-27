@@ -4,6 +4,8 @@ import { LanguagePlugin, discoverAllFiles } from "./plugin";
 
 const IMPORT_RE = /^import\s+['"](.+?)['"]/;
 
+const dartPackageNameCache = new Map<string, string>();
+
 export const dartPlugin: LanguagePlugin = {
   id: "dart",
   name: "Dart",
@@ -33,24 +35,29 @@ export const dartPlugin: LanguagePlugin = {
     return discoverAllFiles(dir, [".dart"]);
   },
 
-  parseImports(filePath: string, projectRoot: string, sourceDir: string): string[] {
-    let content: string;
-    try {
-      content = fs.readFileSync(filePath, "utf-8");
-    } catch {
-      return [];
+  parseImports(filePath: string, projectRoot: string, sourceDir: string, content?: string): string[] {
+    if (!content) {
+      try {
+        content = fs.readFileSync(filePath, "utf-8");
+      } catch {
+        return [];
+      }
     }
 
     const libDir = sourceDir;
     const imports: string[] = [];
 
-    // Read package name for resolving package: imports
-    let packageName = path.basename(projectRoot);
-    try {
-      const pubspec = fs.readFileSync(path.join(projectRoot, "pubspec.yaml"), "utf-8");
-      const match = pubspec.match(/^name:\s*(\S+)/m);
-      if (match) packageName = match[1];
-    } catch {}
+    // Read package name (cached per projectRoot)
+    let packageName = dartPackageNameCache.get(projectRoot);
+    if (!packageName) {
+      packageName = path.basename(projectRoot);
+      try {
+        const pubspec = fs.readFileSync(path.join(projectRoot, "pubspec.yaml"), "utf-8");
+        const match = pubspec.match(/^name:\s*(\S+)/m);
+        if (match) packageName = match[1];
+      } catch {}
+      dartPackageNameCache.set(projectRoot, packageName);
+    }
 
     for (const line of content.split("\n")) {
       const trimmed = line.trim();

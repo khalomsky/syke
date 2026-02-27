@@ -34,12 +34,13 @@ export const pythonPlugin: LanguagePlugin = {
     return discoverAllFiles(dir, [".py"]);
   },
 
-  parseImports(filePath: string, projectRoot: string, sourceDir: string): string[] {
-    let content: string;
-    try {
-      content = fs.readFileSync(filePath, "utf-8");
-    } catch {
-      return [];
+  parseImports(filePath: string, projectRoot: string, sourceDir: string, content?: string): string[] {
+    if (!content) {
+      try {
+        content = fs.readFileSync(filePath, "utf-8");
+      } catch {
+        return [];
+      }
     }
 
     const imports: string[] = [];

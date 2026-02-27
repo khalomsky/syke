@@ -37,12 +37,13 @@ export const rubyPlugin: LanguagePlugin = {
     return discoverAllFiles(dir, [".rb"]);
   },
 
-  parseImports(filePath: string, _projectRoot: string, _sourceDir: string): string[] {
-    let content: string;
-    try {
-      content = fs.readFileSync(filePath, "utf-8");
-    } catch {
-      return [];
+  parseImports(filePath: string, _projectRoot: string, _sourceDir: string, content?: string): string[] {
+    if (!content) {
+      try {
+        content = fs.readFileSync(filePath, "utf-8");
+      } catch {
+        return [];
+      }
     }
 
     const fileDir = path.dirname(filePath);

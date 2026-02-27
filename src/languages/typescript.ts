@@ -120,12 +120,13 @@ export const typescriptPlugin: LanguagePlugin = {
     return discoverAllFiles(dir, [".ts", ".tsx", ".js", ".jsx"]).filter(f => !f.endsWith(".d.ts"));
   },
 
-  parseImports(filePath: string, projectRoot: string, _sourceDir: string): string[] {
-    let content: string;
-    try {
-      content = fs.readFileSync(filePath, "utf-8");
-    } catch {
-      return [];
+  parseImports(filePath: string, projectRoot: string, _sourceDir: string, content?: string): string[] {
+    if (!content) {
+      try {
+        content = fs.readFileSync(filePath, "utf-8");
+      } catch {
+        return [];
+      }
     }
 
     const fileDir = path.dirname(filePath);
@@ -133,6 +134,15 @@ export const typescriptPlugin: LanguagePlugin = {
 
     for (const line of content.split("\n")) {
       const trimmed = line.trim();
+
+      // Quick prefix guard — skip lines that can't be imports
+      if (trimmed.length === 0 || !(
+        trimmed.charCodeAt(0) === 105 /* i */ ||
+        trimmed.charCodeAt(0) === 101 /* e */ ||
+        trimmed.charCodeAt(0) === 99  /* c */ ||
+        trimmed.charCodeAt(0) === 108 /* l */ ||
+        trimmed.charCodeAt(0) === 118 /* v */
+      )) continue;
 
       let importPath: string | null = null;
       const match = trimmed.match(TS_IMPORT_RE) || trimmed.match(TS_SIDE_EFFECT_RE) || trimmed.match(JS_REQUIRE_RE);
