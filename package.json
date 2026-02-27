@@ -1,0 +1,52 @@
+{
+  "name": "@syke1/mcp-server",
+  "version": "1.8.1",
+  "mcpName": "io.github.khalomsky/syke",
+  "description": "AI code impact analysis MCP server — dependency graphs, cascade detection, and a mandatory build gate for AI coding agents",
+  "main": "dist/index.js",
+  "bin": {
+    "syke": "dist/index.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "smithery.yaml"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').cpSync('src/web/public','dist/web/public',{recursive:true})\"",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khalomsky/syke.git"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "code-analysis",
+    "dependency-graph",
+    "ai",
+    "impact-analysis",
+    "build-gate",
+    "claude",
+    "cursor"
+  ],
+  "author": "SYKE <hello@syke.cloud>",
+  "license": "Elastic-2.0",
+  "homepage": "https://syke.cloud",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.0",
+    "typescript": "^5.7.3"
+  }
+}

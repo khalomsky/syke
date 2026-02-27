@@ -1,0 +1,34 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      licenseKey:
+        type: string
+        default: ""
+        description: Your SYKE Pro license key (optional — Free tier works without it). Get one at https://syke.cloud/dashboard
+      geminiKey:
+        type: string
+        default: ""
+        description: Google Gemini API key for AI semantic analysis (Pro only, optional)
+      openaiKey:
+        type: string
+        default: ""
+        description: OpenAI API key for AI semantic analysis (Pro only, alternative to Gemini)
+      anthropicKey:
+        type: string
+        default: ""
+        description: Anthropic API key for AI semantic analysis (Pro only, alternative to Gemini)
+      aiProvider:
+        type: string
+        default: ""
+        description: Force a specific AI provider (gemini, openai, or anthropic). Auto-selects if empty.
+      webPort:
+        type: string
+        default: "3333"
+        description: Dashboard port (default 3333). Change if port is already in use.
+  commandFunction:
+    |-
+    config => ({ command: 'npx', args: ['-y', '@syke1/mcp-server@latest'], env: { SYKE_LICENSE_KEY: config.licenseKey || '', SYKE_WEB_PORT: config.webPort || '3333', GEMINI_KEY: config.geminiKey || '', OPENAI_KEY: config.openaiKey || '', ANTHROPIC_KEY: config.anthropicKey || '', SYKE_AI_PROVIDER: config.aiProvider || '', SYKE_NO_BROWSER: '1' } })

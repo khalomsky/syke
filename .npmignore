@@ -1,0 +1,10 @@
+.env
+.env.*
+website/
+src/
+tsconfig.json
+*.log
+.git/
+.github/
+node_modules/
+.claude/
