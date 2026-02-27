@@ -4,3 +4,13 @@ dist/
 .env.*
 *.log
 .claude/
+
+# Pro/Cortex source (available in npm package)
+src/ai/
+src/git/
+src/remote/
+src/watcher/
+src/web/
+src/graph/scc.ts
+src/graph/memo-cache.ts
+src/graph/incremental.ts

@@ -268,6 +268,7 @@ We're giving the **first 100 developers** full Pro access for **30 days** — no
 
 Spots are limited. Once they're gone, they're gone.
 
+## Source CodeThis repository contains the **Free tier source code** — the core dependency graph engine, language plugins, and 3 free MCP tools (`gate_build`, `check_safe`, `get_dependencies`).Pro and Cortex features (advanced algorithms, AI analysis, real-time monitoring, web dashboard) are included in the [npm package](https://www.npmjs.com/package/@syke1/mcp-server) as compiled code.
 ## License
 
 [Elastic License 2.0 (ELv2)](LICENSE)
